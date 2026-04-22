@@ -6,67 +6,63 @@
   <title>Quiz — História da Arte</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
   <!-- ══ TELA INICIAL ══ -->
-  <div id="inicio" class="tela" style="display:flex">
-
-    <div class="galeria-header">
-      <div class="numero-edicao">Coleção 2026 &nbsp;·&nbsp; Edição I</div>
-      <span class="titulo-principal">História<br>da Arte</span>
-      <span class="titulo-linha"></span>
-      <p class="subtitulo">Um percurso pelos grandes movimentos e obras</p>
+  <div id="inicio" class="tela ativa">
+    <div class="inicio-header">
+      <div class="mono-label">Coleção 2026 · Edição I</div>
+      <h1 class="titulo-hero">História<br>da Arte</h1>
+      <div class="linha-dourada"></div>
+      <p class="subtitulo-hero">Selecione sua turma para iniciar a visita</p>
     </div>
 
-    <div class="moldura">
-      <div class="catalogo-info">
-        <div class="catalogo-item">
-          <span class="catalogo-numero">50</span>
-          <span class="catalogo-label">Obras no acervo</span>
-        </div>
-        <div class="catalogo-item">
-          <span class="catalogo-numero">10</span>
-          <span class="catalogo-label">Por visita</span>
-        </div>
-        <div class="catalogo-item">
-          <span class="catalogo-numero">20s</span>
-          <span class="catalogo-label">Por obra</span>
-        </div>
-      </div>
-
-      <button class="btn-iniciar" id="btn-iniciar">
-        <span class="btn-iniciar-texto">Iniciar a Visita</span>
+    <div class="niveis-grid">
+      <button class="nivel-card" data-nivel="6ano">
+        <span class="nivel-num">6°</span>
+        <span class="nivel-label">ano</span>
+        <span class="nivel-desc">Arte Antiga e Medieval</span>
       </button>
-      <button class="btn-secundario" id="btn-como-funciona">
-        Como funciona o quiz?
+      <button class="nivel-card" data-nivel="7ano">
+        <span class="nivel-num">7°</span>
+        <span class="nivel-label">ano</span>
+        <span class="nivel-desc">Renascimento e Barroco</span>
+      </button>
+      <button class="nivel-card" data-nivel="8ano">
+        <span class="nivel-num">8°</span>
+        <span class="nivel-label">ano</span>
+        <span class="nivel-desc">Romantismo e Impressionismo</span>
+      </button>
+      <button class="nivel-card" data-nivel="9ano">
+        <span class="nivel-num">9°</span>
+        <span class="nivel-label">ano</span>
+        <span class="nivel-desc">Arte Moderna e Contemporânea</span>
       </button>
     </div>
 
+    <p class="rodape-info">10 obras por visita · 20 segundos por questão</p>
   </div>
 
   <!-- ══ TELA QUIZ ══ -->
   <div id="quiz" class="tela">
-    <div class="quiz-wrapper">
 
-      <div class="quiz-topo">
-        <div>
-          <span class="quiz-numero-grande" id="num-pergunta">01</span>
-          <span class="quiz-de">/ <span id="total-perguntas">10</span></span>
-        </div>
-        <div class="quiz-pontos-wrap">
-          <span class="quiz-pontos-label">Pontuação</span>
-          <span class="quiz-pontos-num" id="pontos-atual">0</span>
-        </div>
+    <div class="quiz-topo">
+      <button class="btn-voltar" id="btn-voltar">← Sair</button>
+      <div class="quiz-nivel-badge" id="quiz-nivel-badge"></div>
+      <div class="quiz-pontos-wrap">
+        <span class="quiz-pontos-label">Pontos</span>
+        <span class="quiz-pontos-num" id="pontos-atual">0</span>
       </div>
+    </div>
 
-      <div class="timer-row">
-        <div class="timer-track">
-          <div class="timer-fill" id="timer-fill"></div>
-        </div>
-        <span class="timer-label" id="timer">20</span>
-      </div>
+    <div class="quiz-progresso">
+      <div class="progresso-fill" id="progresso-fill"></div>
+    </div>
+
+    <div class="quiz-body">
 
       <!-- Loading -->
       <div class="loading-box" id="loading">
@@ -76,30 +72,56 @@
 
       <!-- Conteúdo -->
       <div id="conteudo-quiz" style="display:none">
-        <div class="pergunta-card">
+
+        <div class="obra-wrap">
+          <div class="obra-numero-wrap">
+            <span class="obra-num" id="num-pergunta">01</span>
+            <span class="obra-de">/ <span id="total-perguntas">10</span></span>
+          </div>
+
+          <!-- Imagem da obra -->
+          <div class="obra-imagem-wrap" id="obra-imagem-wrap">
+            <img id="obra-imagem" src="" alt="Obra de arte" loading="lazy">
+            <div class="obra-imagem-placeholder" id="obra-placeholder">🖼️</div>
+          </div>
+
+          <!-- Timer -->
+          <div class="timer-row">
+            <div class="timer-track">
+              <div class="timer-fill" id="timer-fill"></div>
+            </div>
+            <span class="timer-num" id="timer">20</span>
+          </div>
+
+          <!-- Tags -->
           <div class="pergunta-meta">
             <span class="tag tag-categoria" id="tag-categoria"></span>
             <span class="tag" id="tag-dificuldade"></span>
           </div>
+
+          <!-- Enunciado -->
           <p class="enunciado" id="enunciado"></p>
         </div>
 
+        <!-- Alternativas -->
         <div class="alternativas-grid" id="alternativas"></div>
-      </div>
 
+      </div>
     </div>
   </div>
 
   <!-- ══ TELA RESULTADO ══ -->
   <div id="resultado" class="tela">
-    <div class="resultado-moldura">
+    <div class="resultado-card">
       <span class="res-emoji" id="res-emoji">🏛️</span>
-      <span class="res-label">Resultado da visita</span>
+      <div class="mono-label" style="margin-bottom:0.5rem">Resultado da visita</div>
+      <div class="nivel-badge-res" id="nivel-badge-res"></div>
 
       <div class="res-divisor"></div>
 
       <div class="res-placar">
-        <span id="res-pontos">0</span><span> / <span id="res-total">10</span></span>
+        <span id="res-pontos">0</span>
+        <span class="res-placar-den">/ <span id="res-total">10</span></span>
       </div>
       <div class="res-pct" id="res-pct"></div>
 
@@ -108,10 +130,12 @@
       <p class="res-msg" id="res-msg"></p>
 
       <div class="btns-resultado">
-        <button class="btn-iniciar" id="btn-jogar-novamente">
-          <span class="btn-iniciar-texto">Nova Visita</span>
+        <button class="btn-primary" id="btn-jogar-novamente">
+          Nova Visita — mesma turma
         </button>
-        <button class="btn-secundario" id="btn-menu">Voltar ao saguão</button>
+        <button class="btn-secondary" id="btn-menu">
+          Escolher outra turma
+        </button>
       </div>
     </div>
   </div>

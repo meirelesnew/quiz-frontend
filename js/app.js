@@ -14,10 +14,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// ── HELPERS ─────────────────────────────────────────────
+// ── HELPERS ─────────────────────────────────
 function mostrarTela(id) {
-  document.querySelectorAll('.tela').forEach(t => t.style.display = 'none');
-  document.getElementById(id).style.display = 'flex';
+  document.querySelectorAll('.tela').forEach(t => {
+    t.style.display = 'none';
+    t.classList.remove('ativa');
+  });
+  const el = document.getElementById(id);
+  el.style.display = 'flex';
+  el.classList.add('ativa');
 }
 
 function embaralhar(arr) {
@@ -29,34 +34,51 @@ function embaralhar(arr) {
   return a;
 }
 
-async function buscarPerguntas(qtd = 10) {
-  const snap = await getDocs(collection(db, 'perguntas'));
-  const todas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  if (!todas.length) throw new Error('Nenhuma pergunta no Firestore.');
-  return embaralhar(todas).slice(0, qtd);
-}
+const NOMES_NIVEL = {
+  '6ano': '6° Ano',
+  '7ano': '7° Ano',
+  '8ano': '8° Ano',
+  '9ano': '9° Ano'
+};
 
-// ── GAME ────────────────────────────────────────────────
+// ── GAME ────────────────────────────────────
 const GAME = {
   perguntas: [],
   atual: 0,
   pontos: 0,
   timer: null,
   TEMPO: 20,
+  nivel: null,
 
-  async iniciar() {
+  async iniciar(nivel) {
+    this.nivel = nivel;
+    mostrarTela('quiz');
+
+    // badge do nível
+    document.getElementById('quiz-nivel-badge').textContent = NOMES_NIVEL[nivel] || nivel;
+
+    // loading
+    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('conteudo-quiz').style.display = 'none';
+
     try {
-      mostrarTela('quiz');
-      document.getElementById('loading').style.display = 'block';
-      document.getElementById('conteudo-quiz').style.display = 'none';
+      const snap = await getDocs(collection(db, `perguntas_${nivel}`));
+      const todas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      this.perguntas = await buscarPerguntas(10);
+      if (!todas.length) {
+        alert(`Ainda não há perguntas cadastradas para o ${NOMES_NIVEL[nivel]}.\nCadastre perguntas na coleção "perguntas_${nivel}" no Firestore.`);
+        mostrarTela('inicio');
+        return;
+      }
+
+      this.perguntas = embaralhar(todas).slice(0, 10);
       this.atual = 0;
       this.pontos = 0;
 
       document.getElementById('loading').style.display = 'none';
       document.getElementById('conteudo-quiz').style.display = 'block';
       this.mostrarPergunta();
+
     } catch (err) {
       console.error(err);
       alert('Erro ao carregar perguntas: ' + err.message);
@@ -66,28 +88,58 @@ const GAME = {
 
   mostrarPergunta() {
     const p = this.perguntas[this.atual];
-    const num = String(this.atual + 1).padStart(2, '0');
+    const total = this.perguntas.length;
 
-    document.getElementById('num-pergunta').textContent = num;
-    document.getElementById('total-perguntas').textContent = this.perguntas.length;
+    // progresso
+    const pct = (this.atual / total) * 100;
+    document.getElementById('progresso-fill').style.width = pct + '%';
+
+    // número
+    document.getElementById('num-pergunta').textContent = String(this.atual + 1).padStart(2, '0');
+    document.getElementById('total-perguntas').textContent = total;
     document.getElementById('pontos-atual').textContent = this.pontos;
 
+    // imagem da obra
+    const img = document.getElementById('obra-imagem');
+    const placeholder = document.getElementById('obra-placeholder');
+    const wrap = document.getElementById('obra-imagem-wrap');
+
+    if (p.imagem_url) {
+      img.src = p.imagem_url;
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+      wrap.style.display = 'flex';
+      img.onerror = () => {
+        img.style.display = 'none';
+        placeholder.style.display = 'block';
+      };
+    } else {
+      img.style.display = 'none';
+      placeholder.style.display = 'block';
+      // sem imagem: oculta o wrap para não ocupar espaço
+      wrap.style.display = p.imagem_url ? 'flex' : 'none';
+    }
+
+    // tags
     document.getElementById('tag-categoria').textContent = p.categoria || '';
     const tagDif = document.getElementById('tag-dificuldade');
     tagDif.textContent = p.dificuldade || '';
     tagDif.className = 'tag tag-' + (p.dificuldade || 'medio');
 
+    // enunciado
     document.getElementById('enunciado').textContent = p.enunciado;
 
+    // alternativas
     const letras = ['A', 'B', 'C', 'D'];
     const container = document.getElementById('alternativas');
     container.innerHTML = '';
 
-    p.alternativas.forEach((alt, i) => {
+    embaralhar(p.alternativas.map((txt, i) => ({ txt, original: i }))).forEach(({ txt, original }) => {
       const btn = document.createElement('button');
       btn.className = 'alt-btn';
-      btn.innerHTML = `<span class="alt-letra">${letras[i]}</span><span>${alt}</span>`;
-      btn.onclick = () => this.responder(i);
+      btn.dataset.idx = original;
+      btn.innerHTML = `<span class="alt-letra">${letras[container.children.length]}</span><span>${txt}</span>`;
+      btn.onclick = () => this.responder(original);
       container.appendChild(btn);
     });
 
@@ -101,7 +153,7 @@ const GAME = {
     const fill  = document.getElementById('timer-fill');
 
     label.textContent = tempo;
-    label.className = 'timer-label';
+    label.className = 'timer-num';
     fill.style.width = '100%';
     fill.className = 'timer-fill';
 
@@ -109,37 +161,34 @@ const GAME = {
       tempo--;
       label.textContent = tempo;
       fill.style.width = (tempo / this.TEMPO * 100) + '%';
-
       if (tempo <= 6) {
-        label.className = 'timer-label urgente';
+        label.className = 'timer-num urgente';
         fill.className  = 'timer-fill urgente';
       }
-      if (tempo <= 0) {
-        clearInterval(this.timer);
-        this.responder(-1);
-      }
+      if (tempo <= 0) { clearInterval(this.timer); this.responder(-1); }
     }, 1000);
   },
 
-  responder(indice) {
+  responder(indiceOriginal) {
     clearInterval(this.timer);
     const p = this.perguntas[this.atual];
     const botoes = document.querySelectorAll('.alt-btn');
 
-    botoes.forEach(b => b.disabled = true);
+    botoes.forEach(b => {
+      b.disabled = true;
+      const idx = parseInt(b.dataset.idx);
+      if (idx === p.resposta_correta) b.classList.add('correta');
+      else if (idx === indiceOriginal) b.classList.add('errada');
+    });
 
-    if (indice >= 0) {
-      botoes[indice].classList.add(indice === p.resposta_correta ? 'correta' : 'errada');
-      if (indice === p.resposta_correta) this.pontos++;
-    }
-    botoes[p.resposta_correta].classList.add('correta');
+    if (indiceOriginal === p.resposta_correta) this.pontos++;
     document.getElementById('pontos-atual').textContent = this.pontos;
 
     setTimeout(() => {
       this.atual++;
       if (this.atual < this.perguntas.length) this.mostrarPergunta();
       else this.mostrarResultado();
-    }, 1500);
+    }, 1600);
   },
 
   mostrarResultado() {
@@ -150,8 +199,11 @@ const GAME = {
     document.getElementById('res-pontos').textContent = this.pontos;
     document.getElementById('res-total').textContent  = total;
     document.getElementById('res-pct').textContent    = pct + '% de aproveitamento';
+    document.getElementById('nivel-badge-res').textContent = NOMES_NIVEL[this.nivel] || this.nivel;
 
-    let emoji = '😔', msg = '"A arte é longa, a vida é breve." Continue explorando.';
+    document.getElementById('progresso-fill').style.width = '100%';
+
+    let emoji = '😔', msg = '"A arte é longa, a vida é breve." Continue explorando!';
     if (pct >= 80) { emoji = '🏆'; msg = '"A arte é a mentira que nos faz ver a verdade." — Picasso'; }
     else if (pct >= 60) { emoji = '🎨'; msg = '"A pintura é poesia muda." — Leonardo da Vinci'; }
     else if (pct >= 40) { emoji = '🏛️'; msg = '"Todo artista foi primeiro um amador." — Emerson'; }
@@ -161,10 +213,20 @@ const GAME = {
   }
 };
 
-// ── EVENTOS ─────────────────────────────────────────────
-document.getElementById('btn-iniciar').addEventListener('click', () => GAME.iniciar());
-document.getElementById('btn-jogar-novamente').addEventListener('click', () => GAME.iniciar());
-document.getElementById('btn-menu').addEventListener('click', () => mostrarTela('inicio'));
-document.getElementById('btn-como-funciona').addEventListener('click', () => {
-  alert('🎨 Como funciona:\n\n• 10 perguntas aleatórias por rodada\n• 20 segundos por questão\n• Sem resposta no tempo = pergunta perdida\n• Clique na alternativa correta para pontuar');
+// ── EVENTOS ─────────────────────────────────
+document.querySelectorAll('.nivel-card').forEach(btn => {
+  btn.addEventListener('click', () => GAME.iniciar(btn.dataset.nivel));
+});
+
+document.getElementById('btn-voltar').addEventListener('click', () => {
+  clearInterval(GAME.timer);
+  mostrarTela('inicio');
+});
+
+document.getElementById('btn-jogar-novamente').addEventListener('click', () => {
+  GAME.iniciar(GAME.nivel);
+});
+
+document.getElementById('btn-menu').addEventListener('click', () => {
+  mostrarTela('inicio');
 });
