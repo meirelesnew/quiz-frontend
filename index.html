@@ -3,70 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz – História da Arte</title>
+  <title>Quiz — História da Arte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
   <!-- ══ TELA INICIAL ══ -->
   <div id="inicio" class="tela" style="display:flex">
-    <div class="card">
-      <div class="logo-museu">
-        <span class="icone">🖼️</span>
-        <h1>História da Arte</h1>
-        <p>Quiz Interativo</p>
-      </div>
 
-      <div class="divisor"></div>
-
-      <div class="stats-inicio">
-        <div class="stat">
-          <strong>50</strong>
-          <span>Perguntas</span>
-        </div>
-        <div class="stat">
-          <strong>10</strong>
-          <span>Por rodada</span>
-        </div>
-        <div class="stat">
-          <strong>20s</strong>
-          <span>Por questão</span>
-        </div>
-      </div>
-
-      <button class="btn" id="btn-iniciar">Iniciar Quiz</button>
+    <div class="galeria-header">
+      <div class="numero-edicao">Coleção 2026 &nbsp;·&nbsp; Edição I</div>
+      <span class="titulo-principal">História<br>da Arte</span>
+      <span class="titulo-linha"></span>
+      <p class="subtitulo">Um percurso pelos grandes movimentos e obras</p>
     </div>
+
+    <div class="moldura">
+      <div class="catalogo-info">
+        <div class="catalogo-item">
+          <span class="catalogo-numero">50</span>
+          <span class="catalogo-label">Obras no acervo</span>
+        </div>
+        <div class="catalogo-item">
+          <span class="catalogo-numero">10</span>
+          <span class="catalogo-label">Por visita</span>
+        </div>
+        <div class="catalogo-item">
+          <span class="catalogo-numero">20s</span>
+          <span class="catalogo-label">Por obra</span>
+        </div>
+      </div>
+
+      <button class="btn-iniciar" id="btn-iniciar">
+        <span class="btn-iniciar-texto">Iniciar a Visita</span>
+      </button>
+      <button class="btn-secundario" id="btn-como-funciona">
+        Como funciona o quiz?
+      </button>
+    </div>
+
   </div>
 
   <!-- ══ TELA QUIZ ══ -->
   <div id="quiz" class="tela">
-    <div class="card">
+    <div class="quiz-wrapper">
 
-      <div class="quiz-header">
-        <span>Questão <strong id="num-pergunta">1</strong> / <span id="total-perguntas">10</span></span>
-        <span>Pontos: <strong id="pontos-atual">0</strong></span>
-        <div class="timer-box" id="timer">20</div>
+      <div class="quiz-topo">
+        <div>
+          <span class="quiz-numero-grande" id="num-pergunta">01</span>
+          <span class="quiz-de">/ <span id="total-perguntas">10</span></span>
+        </div>
+        <div class="quiz-pontos-wrap">
+          <span class="quiz-pontos-label">Pontuação</span>
+          <span class="quiz-pontos-num" id="pontos-atual">0</span>
+        </div>
       </div>
 
-      <div class="barra-wrap">
-        <div id="barra-progresso"></div>
+      <div class="timer-row">
+        <div class="timer-track">
+          <div class="timer-fill" id="timer-fill"></div>
+        </div>
+        <span class="timer-label" id="timer">20</span>
       </div>
 
       <!-- Loading -->
-      <div id="loading" style="display:flex">
-        <div class="spinner"></div>
-        <span>Carregando perguntas...</span>
+      <div class="loading-box" id="loading">
+        <span class="loading-icone">🖌️</span>
+        <span class="loading-txt">Preparando as obras...</span>
       </div>
 
-      <!-- Conteúdo real -->
+      <!-- Conteúdo -->
       <div id="conteudo-quiz" style="display:none">
-        <div class="badges">
-          <span class="badge badge-categoria" id="categoria-badge"></span>
-          <span class="badge" id="dificuldade-badge"></span>
+        <div class="pergunta-card">
+          <div class="pergunta-meta">
+            <span class="tag tag-categoria" id="tag-categoria"></span>
+            <span class="tag" id="tag-dificuldade"></span>
+          </div>
+          <p class="enunciado" id="enunciado"></p>
         </div>
 
-        <div id="enunciado"></div>
-        <div id="alternativas"></div>
+        <div class="alternativas-grid" id="alternativas"></div>
       </div>
 
     </div>
@@ -74,24 +92,26 @@
 
   <!-- ══ TELA RESULTADO ══ -->
   <div id="resultado" class="tela">
-    <div class="card">
-      <div class="resultado-centro">
+    <div class="resultado-moldura">
+      <span class="res-emoji" id="res-emoji">🏛️</span>
+      <span class="res-label">Resultado da visita</span>
 
-        <span class="res-emoji" id="res-emoji">🏆</span>
-        <h2 class="res-titulo">Resultado Final</h2>
-        <p class="res-msg" id="res-msg"></p>
+      <div class="res-divisor"></div>
 
-        <div class="divisor"></div>
+      <div class="res-placar">
+        <span id="res-pontos">0</span><span> / <span id="res-total">10</span></span>
+      </div>
+      <div class="res-pct" id="res-pct"></div>
 
-        <div class="placar">
-          <span class="placar-num" id="res-pontos">0</span>
-          <span class="placar-den">/ <span id="res-total">10</span></span>
-        </div>
-        <p class="placar-pct" id="res-pct"></p>
+      <div class="res-divisor"></div>
 
-        <button class="btn" id="btn-jogar-novamente">Jogar Novamente</button>
-        <button class="btn btn-outline" id="btn-menu">Menu Inicial</button>
+      <p class="res-msg" id="res-msg"></p>
 
+      <div class="btns-resultado">
+        <button class="btn-iniciar" id="btn-jogar-novamente">
+          <span class="btn-iniciar-texto">Nova Visita</span>
+        </button>
+        <button class="btn-secundario" id="btn-menu">Voltar ao saguão</button>
       </div>
     </div>
   </div>
